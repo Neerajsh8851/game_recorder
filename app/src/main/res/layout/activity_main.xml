@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:background="@drawable/background">
+
+
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_session"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        app:track="@drawable/track"
+        android:thumb="@drawable/thumb"
+        app:showText="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.098" />
+
+
+<!--    Configuration settings ui-->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/switch_session"
+        app:layout_constraintVertical_bias="0.31">
+
+
+        <!--        Mic SRC switch-->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_medium"
+            android:background="#112031"
+            android:paddingEnd="20dp"
+            android:layout_marginBottom="2dp"
+            android:paddingStart="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="MIC"
+                android:textColor="@color/white" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_mic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:minHeight="48dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:thumb="@drawable/thumb"
+                app:showText="true"
+                app:track="@drawable/track" />
+
+        </RelativeLayout>
+
+        <!--      RESOLUTION-->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_medium"
+            android:layout_marginBottom="2dp"
+            android:background="#112031"
+            android:paddingStart="@dimen/small_padding"
+            android:paddingEnd="@dimen/small_padding"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_resolution_text"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/video_resolution_text"
+                android:textColor="@color/white"/>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <include layout="@layout/resolution_selector" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+
+        <!--        audio encoder-->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_medium"
+            android:layout_marginBottom="2dp"
+            android:background="#112031"
+            android:paddingStart="@dimen/small_padding"
+            android:paddingEnd="@dimen/small_padding"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_audio_encoder_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/audio_encoder_text"
+                android:textColor="@color/white" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <include layout="@layout/audio_encoder_selector" />
+
+            </FrameLayout>
+
+
+        </LinearLayout>
+
+        <!-- video encoder-->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_medium"
+            android:layout_marginBottom="2dp"
+            android:background="#112031"
+            android:paddingStart="@dimen/small_padding"
+            android:paddingEnd="@dimen/small_padding"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_video_encoder_text"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/video_encoder_text"
+                android:textColor="@color/white" />
+
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+                <include layout="@layout/video_encoder_selector" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <!-- frame rate -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_medium"
+            android:layout_marginBottom="2dp"
+            android:background="#112031"
+            android:paddingStart="@dimen/small_padding"
+            android:paddingEnd="@dimen/small_padding"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_frame_rate_text"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/frame_rate_text"
+                android:textColor="@color/white" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <include layout="@layout/frame_rate_selector" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <!-- bitrate -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_medium"
+            android:layout_marginBottom="2dp"
+            android:background="#112031"
+            android:paddingStart="@dimen/small_padding"
+            android:paddingEnd="@dimen/small_padding"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_bitrate_text"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/video_bitrate_text"
+                android:textColor="@color/white" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <include layout="@layout/bitrate_selector" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+
+
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.constraintlayout.widget.ConstraintLayout>

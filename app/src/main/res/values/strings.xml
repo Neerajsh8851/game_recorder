@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">GameRecorder</string>
+    <string name="video_resolution_text">Video resolution</string>
+    <string name="video_encoder_text">Video encoder</string>
+    <string name="audio_encoder_text">Audio encoder</string>
+    <string name="frame_rate_text">Video frame rate</string>
+    <string name="video_bitrate_text">Video bitrate</string>
+</resources>

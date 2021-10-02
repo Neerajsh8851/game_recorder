@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="height_medium">48dp</dimen>
+    <dimen name="thumb_size">32dp</dimen>
+    <dimen name="small_padding"> 20dp</dimen>
+    <dimen name="common_size_1">28dp</dimen>
+</resources>
