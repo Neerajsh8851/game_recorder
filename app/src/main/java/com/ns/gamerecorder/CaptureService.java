@@ -2,6 +2,8 @@ package com.ns.gamerecorder;
 
 import android.app.Activity;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -13,6 +15,7 @@ import android.hardware.display.VirtualDisplay;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -25,6 +28,7 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import java.io.File;
@@ -35,6 +39,7 @@ import java.util.Locale;
 
 public class CaptureService extends Service {
 
+    public static String KEY_PROJECTION_DATA = "projection-data";
     private final static String TAG = "CaptureService";
 
     public final static String ACTION_START_SESSION = "service.action.start";
@@ -105,14 +110,12 @@ public class CaptureService extends Service {
         // start the recording session
         switch (intent.getAction()) {
             case ACTION_START_SESSION:
-                // get the projection token
-                projection = ((MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE))
-                        .getMediaProjection(Activity.RESULT_OK, intent.getParcelableExtra("KEY_PROJECTION_DATA"));
-
                 recorder = new MediaRecorder();
-
                 initRemoteViews();
                 createCustomNotification(notificationFirstView);
+                // get the projection token
+                projection = ((MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE))
+                        .getMediaProjection(Activity.RESULT_OK, intent.getParcelableExtra(KEY_PROJECTION_DATA));
                 break;
 
             // stop the recording session
@@ -153,19 +156,21 @@ public class CaptureService extends Service {
             }
         }
         return START_NOT_STICKY;
-
     }
 
 
     private void createCustomNotification(RemoteViews views) {
         Notification notification = new NotificationCompat.Builder(getApplication(), App.NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.small_icon)
+                .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(views)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .build();
 
         startForeground(8851, notification);
     }
+
+
 
 
     private void initRemoteViews() {
@@ -177,11 +182,11 @@ public class CaptureService extends Service {
         // what to happens when user click notification buttons
         Intent service = new Intent(getApplication(), CaptureService.class);
         service.setAction(ACTION_RECORDING_START);
-        PendingIntent pendingIntent = PendingIntent.getService(this, 0, service, 0);
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, service, PendingIntent.FLAG_IMMUTABLE);
         notificationFirstView.setOnClickPendingIntent(R.id.iv_toggle_pause_resume, pendingIntent);
 
         service.setAction(ACTION_STOP_SESSION);
-        pendingIntent = PendingIntent.getService(this, 0, service, 0);
+        pendingIntent = PendingIntent.getService(this, 0, service, PendingIntent.FLAG_IMMUTABLE);
         notificationFirstView.setOnClickPendingIntent(R.id.iv_quit, pendingIntent);
 
 
@@ -190,11 +195,11 @@ public class CaptureService extends Service {
         notificationSecondView = new RemoteViews(getPackageName(), R.layout.notification_layout_second);
 
         service.setAction(ACTION_RECORDING_PAUSE);
-        pendingIntent = PendingIntent.getService(this, 0, service, 0);
+        pendingIntent = PendingIntent.getService(this, 0, service, PendingIntent.FLAG_IMMUTABLE);
         notificationSecondView.setOnClickPendingIntent(R.id.iv_toggle_pause_resume, pendingIntent);
 
         service.setAction(ACTION_RECORDING_STOP);
-        pendingIntent = PendingIntent.getService(this, 0, service, 0);
+        pendingIntent = PendingIntent.getService(this, 0, service, PendingIntent.FLAG_IMMUTABLE);
         notificationSecondView.setOnClickPendingIntent(R.id.iv_stop, pendingIntent);
     }
 
@@ -227,6 +232,8 @@ public class CaptureService extends Service {
 
 
     private void startRecording() {
+        File outputFile = new File(createFileName());
+
         if (recorder == null) {
             recorder  = new MediaRecorder();
         } else {
@@ -266,17 +273,16 @@ public class CaptureService extends Service {
 
         try {
             recorder.prepare();
+            initializeVirtualDisplay();
+            recorder.start();
+            isRecording = true;
+
+            // this is to update the notification panel
+            // which then can be used to stop the recording
+            createCustomNotification(notificationSecondView);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        initializeVirtualDisplay();
-        recorder.start();
-        isRecording = true;
-
-        // this is to update the notification panel
-        // which then can be used to stop the recording
-        createCustomNotification(notificationSecondView);
     }
 
     private void stopRecording() {
@@ -293,7 +299,7 @@ public class CaptureService extends Service {
         PendingIntent pendingIntent = PendingIntent.getService(
                 getApplicationContext(), 0,
                 new Intent(getApplicationContext(), CaptureService.class).setAction(ACTION_RECORDING_RESUME),
-                0
+                PendingIntent.FLAG_IMMUTABLE
         );
         notificationSecondView.setOnClickPendingIntent(R.id.iv_toggle_pause_resume, pendingIntent);
         createCustomNotification(notificationSecondView);
@@ -305,13 +311,14 @@ public class CaptureService extends Service {
         PendingIntent pendingIntent = PendingIntent.getService(
                 getApplicationContext(), 0,
                 new Intent(getApplicationContext(), CaptureService.class).setAction(ACTION_RECORDING_PAUSE),
-                0
+                PendingIntent.FLAG_IMMUTABLE
         );
         notificationSecondView.setOnClickPendingIntent(R.id.iv_toggle_pause_resume, pendingIntent);
         createCustomNotification(notificationSecondView);
     }
 
     private void initializeVirtualDisplay() {
+
         App app = (App) getApplication();
         RecorderConfig config  = SRef.config;
         RecorderConfig.VideoResolution r = config.videoResolutions[app.getSelectIndex(App.VIDEO_RESOLUTION_INDEX)];
@@ -339,11 +346,11 @@ public class CaptureService extends Service {
     private String createFileName() {
 
         // directory
-        File fileUrl =   new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + File.separator +  "game recorder");
+        File fileUrl =   Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
         // name of the file
-        String filename = "game recorder " +
-                new SimpleDateFormat("dd-M-yyyy hh:mm:ss", Locale.getDefault()).format( new Date()) + ".mp4";
+       /* String filename = "gamerecording " +
+                new SimpleDateFormat("dd-M-yyyy hh:mm:ss", Locale.getDefault()).format( new Date()) + ".mp4";*/
 
         // create directory if not exist
         if (!fileUrl.exists()) {
@@ -359,7 +366,7 @@ public class CaptureService extends Service {
         }
 
 
-        String uri = fileUrl.getAbsolutePath() + File.separator + filename;
+        String uri = fileUrl.getAbsolutePath() + File.separator + "video.mp4";
 
         Log.d(TAG, "createFileName: " + uri);
         return uri;
@@ -373,9 +380,7 @@ public class CaptureService extends Service {
         // initialize background thread
         HandlerThread handlerThread = new HandlerThread("recording_thread", Process.THREAD_PRIORITY_BACKGROUND);
         handlerThread.start();
-
         handler = new ServiceHandler(handlerThread.getLooper());
-
         Toast.makeText(this, "service started", Toast.LENGTH_SHORT).show();
     }
 

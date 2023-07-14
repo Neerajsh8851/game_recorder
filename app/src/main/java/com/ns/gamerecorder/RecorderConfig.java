@@ -1,6 +1,5 @@
 package com.ns.gamerecorder;
 
-import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.media.MediaRecorder;
@@ -111,7 +110,7 @@ public class RecorderConfig {
         formats.add(MediaRecorder.OutputFormat.AMR_WB);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-        formats.add(MediaRecorder.OutputFormat.OGG);
+            formats.add(MediaRecorder.OutputFormat.OGG);
 
         Integer[] temp = formats.toArray(new Integer[0]);
         outputFormats = new int[formats.size()];

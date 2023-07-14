@@ -14,7 +14,8 @@
         android:background="#112031"
         android:padding="15dp"
         android:tag="current_btn_pause"
-        android:src="@drawable/vec_ic_pause" />
+        android:src="@drawable/vec_ic_pause"
+        android:contentDescription="pause_resume" />
 
 
     <ImageView

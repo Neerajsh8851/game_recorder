@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,17 +18,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "MainActivity";
     private final int PROJECTION_REQUEST = 8851;
-    private final int PERMISSION_REQUEST = 9988;
-    private final String[] permissions = new String[] {
+    private final int PERMISSION_REQUEST_CODE = 9988;
+    private  String[] permissions = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.RECORD_AUDIO
+            Manifest.permission.RECORD_AUDIO,
     };
 
-    private Intent projectionData;
+    private Intent projectionDataIntent;
     private SwitchCompat switchSession;
 
     // buttons controls
@@ -63,6 +68,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             app.pref.edit().putInt(App.BITRATE_INDEX, 5).apply();
         }
 
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU) {
+            permissions = new String[]{
+                    this.permissions[0],
+                    this.permissions[1],
+                    Manifest.permission.POST_NOTIFICATIONS
+            };
+        }
         requestPermission();
         SRef.hostActivity = this;
 
@@ -74,22 +86,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
         switchSession.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Log.d(TAG, "onCheckedChanged: switch state = " + isChecked);
             if (isChecked) {
                 // start the recording session
                 if (SRef.captureService == null)
-                    startRecSession();
+                    startRecordingService();
             } else {
                 if (SRef.captureService != null)
-                    stopRecSession();
+                    stopRecordingService();
             }
         });
 
 
-
-
         int rot = getWindowManager().getDefaultDisplay().getRotation();
-        Log.d(TAG, "onCreate: screen rotation = " +  rot );
+        Log.d(TAG, "onCreate: screen rotation = " + rot);
     }
 
 
@@ -165,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             app.putSelectIndex(App.VIDEO_RESOLUTION_INDEX, i);
             resolutionValueText.setText(config.videoResolutions[i].toString());
 
-        }else if (v.getId() == R.id.iv_video_encoder_left_key) {
+        } else if (v.getId() == R.id.iv_video_encoder_left_key) {
 
             int i = app.getSelectIndex(App.VIDEO_ENCODER_INDEX);
             i--;
@@ -175,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             videoEncoderValueText.setText(config.videoEncoderName.get(config.videoEncoders[i]));
 
-        }else if (v.getId() == R.id.iv_video_encoder_right_key) {
+        } else if (v.getId() == R.id.iv_video_encoder_right_key) {
 
             int i = app.getSelectIndex(App.VIDEO_ENCODER_INDEX);
             i++;
@@ -184,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             app.putSelectIndex(App.VIDEO_ENCODER_INDEX, i);
             videoEncoderValueText.setText(config.videoEncoderName.get(config.videoEncoders[i]));
 
-        }else if (v.getId() == R.id.iv_audio_encoder_left_key) {
+        } else if (v.getId() == R.id.iv_audio_encoder_left_key) {
 
             int i = app.getSelectIndex(App.AUDIO_ENCODER_INDEX);
             i--;
@@ -193,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             app.putSelectIndex(App.AUDIO_ENCODER_INDEX, i);
             audioEncoderValueText.setText(config.audioEncoderName.get(config.audioEncoders[i]));
 
-        }else if (v.getId() == R.id.iv_audio_encoder_right_key) {
+        } else if (v.getId() == R.id.iv_audio_encoder_right_key) {
             int i = app.getSelectIndex(App.AUDIO_ENCODER_INDEX);
             i++;
             int len = config.audioEncoders.length;
@@ -201,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             app.putSelectIndex(App.AUDIO_ENCODER_INDEX, i);
             audioEncoderValueText.setText(config.audioEncoderName.get(config.audioEncoders[i]));
 
-        }else if (v.getId() == R.id.iv_frame_rate_left_key) {
+        } else if (v.getId() == R.id.iv_frame_rate_left_key) {
 
             int i = app.getSelectIndex(App.FRAME_RATE_INDEX);
             i--;
@@ -210,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             app.putSelectIndex(App.FRAME_RATE_INDEX, i);
             frameRateValueText.setText(String.valueOf(config.frameRates[i]));
 
-        }else if (v.getId() == R.id.iv_frame_rate_right_key) {
+        } else if (v.getId() == R.id.iv_frame_rate_right_key) {
             int i = app.getSelectIndex(App.FRAME_RATE_INDEX);
             i++;
             int len = config.frameRates.length;
@@ -218,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             app.putSelectIndex(App.FRAME_RATE_INDEX, i);
             frameRateValueText.setText(String.valueOf(config.frameRates[i]));
 
-        }else if (v.getId() == R.id.iv_bitrate_left_key) {
+        } else if (v.getId() == R.id.iv_bitrate_left_key) {
 
             int i = app.getSelectIndex(App.BITRATE_INDEX);
             i--;
@@ -227,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             app.putSelectIndex(App.BITRATE_INDEX, i);
             bitrateValueText.setText(String.valueOf(config.bitrates[i]) + "MB");
 
-        }else if (v.getId() == R.id.iv_bitrate_right_key) {
+        } else if (v.getId() == R.id.iv_bitrate_right_key) {
 
             int i = app.getSelectIndex(App.BITRATE_INDEX);
             i++;
@@ -235,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (i >= len) i = 0;
             app.putSelectIndex(App.BITRATE_INDEX, i);
             bitrateValueText.setText(String.valueOf(config.bitrates[i]) + "MB");
-
         }
     }
 
@@ -245,8 +253,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // IF USER ACCEPTS THE PERMISSION TO CAPTURE THE SCREEN
         if (resultCode == RESULT_OK && requestCode == PROJECTION_REQUEST) {
-            projectionData = data;
-            startRecSession();
+            projectionDataIntent = data;
+            startRecordingService();
         } else {
             Toast.makeText(this, "you denied the capture session", Toast.LENGTH_SHORT).show();
             switchSession.setChecked(false);
@@ -256,21 +264,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == PERMISSION_REQUEST) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-            grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (!hasPermissions(permissions)) {
                 return;
             }
             finish();
-            System.exit(0);
         }
     }
 
-    private void startRecSession() {
-        if (projectionData == null) {
+    private void startRecordingService() {
+        if (projectionDataIntent == null) {
             MediaProjectionManager projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
-            startActivityForResult( projectionManager.createScreenCaptureIntent() , PROJECTION_REQUEST);
+            startActivityForResult(projectionManager.createScreenCaptureIntent(), PROJECTION_REQUEST);
             return;
         }
 
@@ -278,28 +283,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent serviceIntent = new Intent(this, CaptureService.class);
         serviceIntent.setAction(CaptureService.ACTION_START_SESSION);
         // the same key is used to obtain projection data in Capture service
-        serviceIntent.putExtra("KEY_PROJECTION_DATA", projectionData);
+        serviceIntent.putExtra(CaptureService.KEY_PROJECTION_DATA, projectionDataIntent);
 
         startService(serviceIntent);
     }
 
-    private void stopRecSession() {
+    private void stopRecordingService() {
         Intent serviceIntent = new Intent(this, CaptureService.class);
         serviceIntent.setAction(CaptureService.ACTION_STOP_SESSION);
-        serviceIntent.putExtra("projection_data", projectionData);
+        serviceIntent.putExtra("projection_data", projectionDataIntent);
 
         startService(serviceIntent);
     }
 
 
     private void requestPermission() {
-        if (ActivityCompat.checkSelfPermission(this, permissions[0]) +
-                ActivityCompat.checkSelfPermission(this, permissions[1]) != PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "requestPermission: requesting for permissions" );
-            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST);
+        if (!hasPermissions(permissions)) {
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
         }
+    }
 
-        Log.d(TAG, "requestPermission: permission accepted - " + permissions[0] + " " + permissions[1]);
+    private boolean hasPermissions(String[] permissions) {
+        boolean hasPermissions = true;
+        for (String requiredPerm : permissions) {
+            hasPermissions = hasPermissions && (ActivityCompat.checkSelfPermission(this, requiredPerm) == PackageManager.PERMISSION_GRANTED);
+        }
+        return hasPermissions;
     }
 
 

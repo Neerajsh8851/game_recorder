@@ -5,16 +5,11 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.os.Build;
-import android.util.DisplayMetrics;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
 public class App extends Application {
-
     public static final String NOTIFICATION_CHANNEL_ID = "com.ns.notification.1";
     public static final String NOTIFICATION_CHANNEL_NAME = "capture notification";
     public static final String NOTIFICATION_CHANNEL_DESCRIPTION = "controls the screen capture";
@@ -38,11 +33,11 @@ public class App extends Application {
         config = new RecorderConfig();
         SRef.config = config;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createChannel();
-        }
-
         pref = getSharedPreferences(SHARED_PREF_KEY, Context.MODE_PRIVATE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel();
+        }
     }
 
     // get the data out from shared pref
@@ -57,9 +52,9 @@ public class App extends Application {
     }
 
 
-    // create notification channel for android versions starting from O
+    // create notification channel for android versions starting from api level 26
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void createChannel() {
+    private void createNotificationChannel() {
         NotificationChannel channel =
                 new NotificationChannel(NOTIFICATION_CHANNEL_ID,
                         NOTIFICATION_CHANNEL_NAME,
@@ -68,4 +63,5 @@ public class App extends Application {
         channel.setDescription(NOTIFICATION_CHANNEL_DESCRIPTION);
         getSystemService(NotificationManager.class).createNotificationChannel(channel);
     }
+
 }
